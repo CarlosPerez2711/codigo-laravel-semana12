@@ -12,6 +12,12 @@
     <tr>
         @if ($servicios)
             @foreach ($servicios as $servicio)
+                <td>
+                    @if($servicio->image)
+                        <img src="/storage/{{ $servicio->image }}" alt=" {{ $servicio->titulo }} "
+                        width="50" height="50">
+                    @endif
+                </td>
                 <td >
                     {{-- <strong>{{$item->id}}</strong><br>
                     <strong>{{$item->titulo}}</strong><br>

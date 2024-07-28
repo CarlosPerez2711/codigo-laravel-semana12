@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\Servicio;
+use Illuminate\Support\Facades\Storage;
 use App\Http\Requests\CreateServicioRequest;
 
 class Servicios2Controller extends Controller
@@ -13,8 +14,8 @@ class Servicios2Controller extends Controller
      */
     public function index()
     {
-        $servicios= Servicio::oldest('id')->paginate(3);
-        return view('servicios',compact('servicios'));//
+        $servicios = Servicio::oldest('id')->paginate(3);
+        return view('servicios', compact('servicios'));
     }
 
     /**
@@ -22,8 +23,8 @@ class Servicios2Controller extends Controller
      */
     public function create()
     {
-        return view('create',[
-            'servicio'=>new Servicio
+        return view('create', [
+            'servicio' => new Servicio
         ]);
     }
 
@@ -31,12 +32,16 @@ class Servicios2Controller extends Controller
      * Store a newly created resource in storage.
      */
     public function store(CreateServicioRequest $request)
-    {   
-        {
-            Servicio::create($request->validated());
-            // return redirect()->route('servicios')->with('success', 'Service created successfully!');
-            return redirect()->route('servicios.index')->with('estado','El servicio fue creado correctamente');
+    {
+        $servicio = new Servicio($request->validated());
+
+        if ($request->hasFile('image')) {
+            $servicio->image = $request->file('image')->store('images');
         }
+
+        $servicio->save();
+
+        return redirect()->route('servicios.index')->with('estado', 'El servicio fue creado correctamente');
     }
 
     /**
@@ -44,53 +49,52 @@ class Servicios2Controller extends Controller
      */
     public function show($id)
     {
-        return view('show',[
-            'servicio'=>Servicio::find($id)
+        return view('show', [
+            'servicio' => Servicio::find($id)
         ]);
     }
 
     /**
      * Show the form for editing the specified resource.
      */
-    //funcion de editar envia un servicio
     public function edit(Servicio $servicio)
     {
         return view('editar', [
-            'servicio'=>$servicio
+            'servicio' => $servicio
         ]);
-        //
     }
-
 
     /**
      * Update the specified resource in storage.
      */
-    //funcion modificar
     public function update(Servicio $servicio, CreateServicioRequest $request)
     {
-        $servicio->update($request->validated());
-
-        // return redirect()->route('servicios.show',$id);
-        return redirect()->route('servicios.show', $servicio)->with('estado','El servicio fue creado correctamente');
-        //
+        if($request->hasFile('image')){
+            Storage::delete($servicio->image);
+            $servicio->fill( $request->validated());
+            $servicio->image = $request->file('image')->store('image');
+            $servicio->save();
+        
+        }
+        else {
+            $servicio->update( array_filter($request->validated()) );
+        }
+        return redirect()->route('servicios.show', $servicio)->with('estado', 'El servicio fue creado correctamente');
     }
-
 
     /**
      * Remove the specified resource from storage.
      */
-    //funcion eliminar 
     public function destroy(Servicio $servicio)
     {
+        Storage::delete($servicio->image);
         $servicio->delete();
 
-        // return redirect()->route('servicios');//
-        return redirect()->route('servicios.index')->with('estado','El servicio fue eliminado correctamente');
+        return redirect()->route('servicios.index')->with('estado', 'El servicio fue eliminado correctamente');
     }
 
-    public function __construct(){
-        // $this->middleware('auth')->only('create','edit');
-        $this->middleware('auth')->except('index','show');
-
+    public function __construct()
+    {
+        $this->middleware('auth')->except('index', 'show');
     }
 }

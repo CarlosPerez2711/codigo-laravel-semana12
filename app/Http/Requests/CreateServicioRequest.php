@@ -24,6 +24,9 @@ class CreateServicioRequest extends FormRequest
         return [
             'titulo' => 'required|string|max:255',
             'descripcion' => 'required|string',
+            'image' => [
+            $this->route('servicio') ? 'nullable' : 'required', 
+            'mimes:jpeg,png',]
         ];
     }
     public function messages()
@@ -31,6 +34,7 @@ class CreateServicioRequest extends FormRequest
         return [
             'titulo.required' => 'Es obligatorio el titulo',
             'descripcion.required' => 'Se necesita una descripción',
-            ];
+            'imagen.required' => 'Debes seleccionar una imagen',
+        ];
     }
 }
